@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/pausar-expirados",
+      "schedule": "0 9 * * *"
+    }
+  ]
+}

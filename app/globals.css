@@ -3,25 +3,53 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #f9f9ff;
+  --foreground: #151c27;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  .text-balance { text-wrap: balance; }
+}
+
+/* Slider de oficios */
+@keyframes slide-oficios {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* Scroll reveal — managed by AnimateIn.tsx */
+.reveal {
+  transition: opacity 0.65s ease-out, transform 0.65s ease-out;
+}
+.reveal.reveal-hidden {
+  opacity: 0;
+  transform: translateY(22px);
+}
+.reveal.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .animate-fade-in,
+  .animate-float,
+  .animate-float-delayed,
+  .animate-float-slow {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .reveal,
+  .reveal.reveal-hidden {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
   }
 }
