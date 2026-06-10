@@ -71,6 +71,29 @@ export async function rechazarOficioPropuesto(prestador_id: string, oficio_propu
 
 // ─── GESTIÓN DE LISTA DE OFICIOS ─────────────────────────────
 
+export async function crearOficio(nombre: string) {
+  const { user } = await verificarAdmin()
+  const admin = db()
+
+  const limpio = nombre.trim()
+  if (!limpio) return { error: 'El nombre del oficio no puede estar vacío.' }
+  if (limpio.length > 60) return { error: 'El nombre no puede superar los 60 caracteres.' }
+
+  const { data: existe } = await admin.from('oficios').select('id').ilike('nombre', limpio).maybeSingle()
+  if (existe) return { error: `Ya existe un oficio llamado "${limpio}".` }
+
+  const { data: creado, error } = await admin
+    .from('oficios')
+    .insert({ nombre: limpio, activo: true, es_base: false })
+    .select('id')
+    .single()
+  if (error) return { error: 'No se pudo crear el oficio.' }
+
+  await auditarAccion(user.id, 'crear_oficio', creado.id, { nombre: limpio })
+  revalidatePath('/admin/oficios')
+  return { ok: true }
+}
+
 export async function toggleOficioActivo(id: string, activo: boolean) {
   const { user } = await verificarAdmin()
   const admin = db()

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { OficioPropuestaCard } from '@/components/admin/OficioPropuestaCard'
-import { toggleOficioActivo, renombrarOficio, eliminarOficio } from '@/app/actions/oficios'
+import { toggleOficioActivo, renombrarOficio, eliminarOficio, crearOficio } from '@/app/actions/oficios'
 
 interface Propuesta {
   prestador_id: string
@@ -91,8 +91,22 @@ function PropuestasTab({ propuestas, oficiosNombres }: { propuestas: Propuesta[]
 function ListaTab({ oficios }: { oficios: OficioRow[] }) {
   const [editando, setEditando]     = useState<string | null>(null)
   const [nuevoNombre, setNuevoNombre] = useState('')
+  const [nuevoOficio, setNuevoOficio] = useState('')
   const [error, setError]           = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+
+  function handleCrear() {
+    const nombre = nuevoOficio.trim()
+    if (!nombre) return
+    startTransition(async () => {
+      const res = await crearOficio(nombre)
+      if (res?.error) setError(res.error)
+      else {
+        setNuevoOficio('')
+        setError(null)
+      }
+    })
+  }
 
   function iniciarEdicion(id: string, nombre: string) {
     setEditando(id)
@@ -125,6 +139,24 @@ function ListaTab({ oficios }: { oficios: OficioRow[] }) {
   }
 
   return (
+    <div className="space-y-4">
+      <div className="flex gap-2 rounded-xl border border-outline-variant bg-white p-3 shadow-card">
+        <input
+          value={nuevoOficio}
+          onChange={(e) => setNuevoOficio(e.target.value.slice(0, 60))}
+          onKeyDown={(e) => { if (e.key === 'Enter') handleCrear() }}
+          placeholder="Nombre del nuevo oficio (ej: Vidriería)"
+          className="flex-1 rounded-lg border border-outline-variant px-3 py-2 text-sm outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container"
+        />
+        <button
+          onClick={handleCrear}
+          disabled={!nuevoOficio.trim() || isPending}
+          className="rounded-lg bg-primary-container px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          + Agregar oficio
+        </button>
+      </div>
+
     <div className="rounded-xl border border-outline-variant bg-white overflow-hidden shadow-card">
       {error && (
         <div className="border-b border-ds-error/20 bg-ds-error-container/20 px-4 py-2 text-sm text-ds-error">
@@ -186,7 +218,7 @@ function ListaTab({ oficios }: { oficios: OficioRow[] }) {
                   >
                     Renombrar
                   </button>
-                  {o.total_prestadores === 0 && !o.es_base && (
+                  {o.total_prestadores === 0 && (
                     <button
                       onClick={() => handleEliminar(o.id, o.nombre, o.total_prestadores)}
                       className="text-xs text-ds-error hover:underline"
@@ -200,6 +232,7 @@ function ListaTab({ oficios }: { oficios: OficioRow[] }) {
           ))}
         </tbody>
       </table>
+    </div>
     </div>
   )
 }
