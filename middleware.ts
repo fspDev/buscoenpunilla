@@ -32,6 +32,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/auth') ||
     pathname.startsWith('/contacto') ||
     pathname.startsWith('/terminos') ||
+    pathname.startsWith('/resena/') ||
+    (pathname.startsWith('/prestador/') && !PRESTADOR_PRIVADO.includes(pathname.split('/')[2])) ||
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api')
   )
