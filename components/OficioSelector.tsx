@@ -129,7 +129,7 @@ export function OficioSelector({
                 <div className="space-y-0.5">
                   <p className="text-sm font-semibold text-secondary flex items-center gap-1">
                     <span className="text-base">✓</span>
-                    Propuesta enviada al admin
+                    Propuesta lista
                   </p>
                   <p className="text-sm text-on-surface font-medium">
                     <strong>{propuesta}</strong>
@@ -144,7 +144,9 @@ export function OficioSelector({
                 </button>
               </div>
               <p className="text-xs text-on-surface-variant leading-relaxed">
-                Será revisada y aprobada por el admin en menos de 48 horas. Tu perfil se mostrará como <strong>Otro</strong> hasta que se apruebe.
+                <strong>Importante:</strong> la propuesta se envía al admin recién cuando guardes el formulario
+                (botón al final de la página). Después será revisada en menos de 48 horas; tu perfil se mostrará
+                como <strong>Otro</strong> hasta que se apruebe.
               </p>
             </div>
           ) : (
@@ -174,7 +176,7 @@ export function OficioSelector({
                       disabled={!propuesta.trim()}
                       className="w-full rounded-lg bg-primary-container px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
                     >
-                      ✓ Enviar propuesta al admin
+                      ✓ Confirmar propuesta
                     </button>
                   </div>
                 </div>
