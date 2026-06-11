@@ -365,6 +365,28 @@ export default async function HomePage() {
       </section>
 
       <Footer />
+
+      {/* JSON-LD — datos estructurados para Google */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'WebSite',
+            name: 'BUSCO en Punilla',
+            url: 'https://buscoenpunilla.com.ar',
+            description: 'Directorio de servicios y oficios locales en el Valle de Punilla, Córdoba, Argentina.',
+            potentialAction: {
+              '@type': 'SearchAction',
+              target: {
+                '@type': 'EntryPoint',
+                urlTemplate: 'https://buscoenpunilla.com.ar/buscar?oficio={search_term_string}',
+              },
+              'query-input': 'required name=search_term_string',
+            },
+          }),
+        }}
+      />
     </div>
   )
 }

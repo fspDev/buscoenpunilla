@@ -9,9 +9,33 @@ const inter = Inter({
   display: "swap",
 });
 
+const BASE_URL = 'https://buscoenpunilla.com.ar'
+
 export const metadata: Metadata = {
-  title: "BUSCO — Servicios locales en Valle de Punilla",
-  description: "Encontrá electricistas, plomeros, albañiles y más en San Antonio de Arredondo y alrededores.",
+  metadataBase: new URL(BASE_URL),
+  title: {
+    default: 'BUSCO en Punilla — Servicios y oficios locales',
+    template: '%s | BUSCO en Punilla',
+  },
+  description: 'Encontrá electricistas, plomeros, albañiles y más en San Antonio de Arredondo, Cosquín y el Valle de Punilla. Todos con reseñas reales de vecinos.',
+  keywords: ['servicios locales', 'oficios', 'Valle de Punilla', 'San Antonio de Arredondo', 'electricista', 'plomero', 'albañil', 'Cosquín', 'Córdoba'],
+  authors: [{ name: 'BUSCO en Punilla' }],
+  openGraph: {
+    type: 'website',
+    locale: 'es_AR',
+    url: BASE_URL,
+    siteName: 'BUSCO en Punilla',
+    title: 'BUSCO en Punilla — Servicios y oficios locales',
+    description: 'Encontrá electricistas, plomeros, albañiles y más en el Valle de Punilla. Con reseñas reales de vecinos.',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'BUSCO en Punilla' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'BUSCO en Punilla — Servicios y oficios locales',
+    description: 'Encontrá electricistas, plomeros, albañiles y más en el Valle de Punilla.',
+  },
+  robots: { index: true, follow: true },
+  alternates: { canonical: BASE_URL },
 };
 
 export default function RootLayout({

@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Suspense } from 'react'
+import type { Metadata } from 'next'
 import { Footer } from '@/components/Footer'
 import { createClient } from '@/lib/supabase/server'
 import { getUser } from '@/lib/auth'
@@ -13,9 +14,44 @@ import { SuccessBanner } from '@/components/SuccessBanner'
 import { ResenasOrden } from '@/components/ResenasOrden'
 import type { Resena } from '@/types'
 
+const BASE_URL = 'https://buscoenpunilla.com.ar'
+
 interface PageProps {
   params: { id: string }
   searchParams: { resena?: string; orden?: string }
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const supabase = createClient()
+  const { data: p } = await supabase
+    .from('prestadores_publicos')
+    .select('nombre, oficio, zonas_trabajo, descripcion, foto_url, rating_promedio, total_resenas')
+    .eq('id', params.id)
+    .single()
+
+  if (!p) return {}
+
+  const zona = (p.zonas_trabajo as string[] | null)?.[0] ?? 'Valle de Punilla'
+  const title = `${p.nombre} — ${p.oficio} en ${zona}`
+  const rating = p.rating_promedio ? ` · ${Number(p.rating_promedio).toFixed(1)}★ (${p.total_resenas} reseñas)` : ''
+  const description = p.descripcion
+    ? `${p.descripcion.slice(0, 130)}${p.descripcion.length > 130 ? '…' : ''}`
+    : `${p.oficio} en ${zona}${rating}. Contactá a ${p.nombre} directamente por WhatsApp. Verificado en BUSCO en Punilla.`
+
+  const url = `${BASE_URL}/prestador/${params.id}`
+
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      type: 'profile',
+      url,
+      title,
+      description,
+      images: p.foto_url ? [{ url: p.foto_url, alt: p.nombre }] : [],
+    },
+  }
 }
 
 export default async function PerfilPrestadorPage({ params, searchParams }: PageProps) {
@@ -265,6 +301,46 @@ export default async function PerfilPrestadorPage({ params, searchParams }: Page
           />
         </div>
       )}
+
+      {/* JSON-LD — datos estructurados para Google */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'LocalBusiness',
+            name: prestador.nombre,
+            description: prestador.descripcion ?? undefined,
+            image: prestador.foto_url ?? undefined,
+            url: `${BASE_URL}/prestador/${params.id}`,
+            telephone: prestador.whatsapp
+              ? `+54${String(prestador.whatsapp).replace(/\D/g, '')}`
+              : undefined,
+            areaServed: (prestador.zonas_trabajo as string[] | null)?.map((z: string) => ({
+              '@type': 'City',
+              name: z,
+            })),
+            hasOfferCatalog: {
+              '@type': 'OfferCatalog',
+              name: prestador.oficio,
+            },
+            aggregateRating: totalResenas > 0 ? {
+              '@type': 'AggregateRating',
+              ratingValue: String(rating),
+              reviewCount: String(totalResenas),
+              bestRating: '5',
+              worstRating: '1',
+            } : undefined,
+            review: resenas.slice(0, 5).map((r) => ({
+              '@type': 'Review',
+              author: { '@type': 'Person', name: r.cliente_nombre },
+              reviewRating: { '@type': 'Rating', ratingValue: String(r.estrellas), bestRating: '5' },
+              reviewBody: r.comentario ?? undefined,
+              datePublished: r.created_at?.slice(0, 10),
+            })),
+          }),
+        }}
+      />
     </div>
   )
 }
