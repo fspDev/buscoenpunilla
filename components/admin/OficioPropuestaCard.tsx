@@ -24,7 +24,7 @@ export function OficioPropuestaCard({
   created_at,
   oficiosExistentes,
 }: Props) {
-  const [modo, setModo]                   = useState<'idle' | 'fusionar' | 'rechazar'>('idle')
+  const [modo, setModo]                   = useState<'idle' | 'fusionar'>('idle')
   const [oficioFusion, setOficioFusion]   = useState('')
   const [nombreEditado, setNombreEditado] = useState(oficio_propuesto)
   const [isPending, startTransition]      = useTransition()
@@ -56,7 +56,8 @@ export function OficioPropuestaCard({
     })
   }
 
-  function handleRechazar() {
+  function handleEliminar() {
+    if (!window.confirm(`¿Eliminar la propuesta "${oficio_propuesto}" de ${nombre}? Se notificará al prestador.`)) return
     startTransition(async () => {
       await rechazarOficioPropuesto(prestador_id, oficio_propuesto)
       setDone(true)
@@ -119,26 +120,28 @@ export function OficioPropuestaCard({
 
       {/* Acciones */}
       {modo === 'idle' && (
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={handleAprobar}
-            disabled={!nombreEditado.trim()}
-            className="rounded-lg bg-secondary px-3 py-2 text-xs font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Aprobar como nuevo oficio
-          </button>
+        <div className="flex items-center justify-between gap-2 pt-1">
           <button
             onClick={() => setModo('fusionar')}
-            className="rounded-lg border border-primary-container px-3 py-2 text-xs font-semibold text-primary-container transition hover:bg-surface-low"
+            className="text-xs text-on-surface-variant hover:text-on-surface hover:underline transition"
           >
-            Fusionar con oficio existente
+            Fusionar con existente
           </button>
-          <button
-            onClick={() => setModo('rechazar')}
-            className="rounded-lg border border-ds-error px-3 py-2 text-xs font-semibold text-ds-error transition hover:bg-ds-error-container/20"
-          >
-            Rechazar
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={handleAprobar}
+              disabled={!nombreEditado.trim()}
+              className="text-xs font-medium text-primary-container hover:underline disabled:cursor-not-allowed disabled:opacity-40 transition"
+            >
+              Renombrar
+            </button>
+            <button
+              onClick={handleEliminar}
+              className="text-xs font-medium text-ds-error hover:underline transition"
+            >
+              Eliminar
+            </button>
+          </div>
         </div>
       )}
 
@@ -173,27 +176,6 @@ export function OficioPropuestaCard({
         </div>
       )}
 
-      {modo === 'rechazar' && (
-        <div className="space-y-2">
-          <p className="text-sm text-on-surface-variant">
-            El prestador recibirá una notificación para que actualice su oficio.
-          </p>
-          <div className="flex gap-2">
-            <button
-              onClick={handleRechazar}
-              className="rounded-lg bg-ds-error px-3 py-2 text-xs font-semibold text-white transition hover:opacity-90"
-            >
-              Confirmar rechazo
-            </button>
-            <button
-              onClick={() => setModo('idle')}
-              className="rounded-lg border border-outline-variant px-3 py-2 text-xs font-medium text-on-surface-variant transition hover:bg-surface-low"
-            >
-              Cancelar
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
