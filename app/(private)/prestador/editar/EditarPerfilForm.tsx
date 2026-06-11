@@ -8,9 +8,9 @@ import { guardarPerfilAction, guardarFotoPerfilAction, agregarFotoTrabajoAction,
 import { cambiarRolAction } from '@/app/actions/cliente'
 import { FotoUploader } from '@/components/FotoUploader'
 import { OficioSelector } from '@/components/OficioSelector'
+import { ZonaSelector } from '@/components/ZonaSelector'
 import { SubmitButton } from '@/components/SubmitButton'
 import type { FotoTrabajo } from '@/types'
-import { ZONAS } from '@/lib/constants'
 
 const MAX_DESC = 200
 
@@ -20,19 +20,21 @@ interface InitialData {
   zonas: string[]; activo: boolean; matricula: string
   oficio_propuesto?: string | null
   estado_oficio?: string | null
+  zona_propuesta?: string | null
+  estado_zona?: string | null
 }
 
 interface Props {
   prestador_id: string
   oficiosDisponibles: string[]
+  zonasDisponibles: string[]
   initialData: InitialData
   fotos_trabajos: FotoTrabajo[]
 }
 
-export function EditarPerfilForm({ prestador_id, oficiosDisponibles, initialData, fotos_trabajos }: Props) {
+export function EditarPerfilForm({ prestador_id, oficiosDisponibles, zonasDisponibles, initialData, fotos_trabajos }: Props) {
   const [state, formAction]   = useFormState(guardarPerfilAction, null)
   const [desc, setDesc]       = useState(initialData.descripcion)
-  const [zonas, setZonas]     = useState<string[]>(initialData.zonas)
   const [fotoUrl, setFotoUrl] = useState<string | null>(initialData.foto_url)
   const [fotos, setFotos]     = useState<FotoTrabajo[]>(fotos_trabajos)
   const [activo, setActivo]   = useState(initialData.activo)
@@ -51,10 +53,6 @@ export function EditarPerfilForm({ prestador_id, oficiosDisponibles, initialData
   function showError(text: string) {
     setToast({ text, ok: false })
     setTimeout(() => setToast(null), 4000)
-  }
-
-  function toggleZona(zona: string) {
-    setZonas((prev) => prev.includes(zona) ? prev.filter((z) => z !== zona) : [...prev, zona])
   }
 
   async function handleFotoPerfil(url: string) {
@@ -97,6 +95,8 @@ export function EditarPerfilForm({ prestador_id, oficiosDisponibles, initialData
 
   const estado = initialData.estado_oficio
   const propuesta = initialData.oficio_propuesto
+  const estadoZona = initialData.estado_zona
+  const propuestaZona = initialData.zona_propuesta
 
   return (
     <div className="space-y-8 max-w-2xl">
@@ -132,6 +132,24 @@ export function EditarPerfilForm({ prestador_id, oficiosDisponibles, initialData
         </div>
       )}
 
+      {/* Banners de estado de zona */}
+      {estadoZona === 'pendiente' && propuestaZona && (
+        <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3">
+          <p className="text-sm font-semibold text-amber-800">Zona en revisión</p>
+          <p className="mt-0.5 text-sm text-amber-700">
+            Tu zona <strong>&ldquo;{propuestaZona}&rdquo;</strong> está siendo revisada. Te avisamos cuando sea aprobada.
+          </p>
+        </div>
+      )}
+      {estadoZona === 'rechazado' && (
+        <div className="rounded-xl border border-ds-error/30 bg-ds-error-container/20 px-4 py-3">
+          <p className="text-sm font-semibold text-ds-error">Zona no aprobada</p>
+          <p className="mt-0.5 text-sm text-ds-error/80">
+            Tu zona propuesta no pudo ser aprobada. Por favor elegí una de la lista o proponé una diferente.
+          </p>
+        </div>
+      )}
+
       {/* Foto de perfil */}
       <section className="rounded-xl border border-outline-variant bg-white p-5 shadow-card">
         <h2 className="mb-4 font-semibold text-on-surface">Foto de perfil</h2>
@@ -156,9 +174,6 @@ export function EditarPerfilForm({ prestador_id, oficiosDisponibles, initialData
 
       {/* Datos del perfil */}
       <form action={formAction} className="rounded-xl border border-outline-variant bg-white p-5 shadow-card space-y-4">
-        {/* Hidden inputs para zonas */}
-        {zonas.map((z) => <input key={z} type="hidden" name="zonas" value={z} />)}
-
         <h2 className="font-semibold text-on-surface">Datos del perfil</h2>
 
         <div>
@@ -212,23 +227,14 @@ export function EditarPerfilForm({ prestador_id, oficiosDisponibles, initialData
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-on-surface mb-2">Zonas de trabajo</label>
-          <div className="flex flex-wrap gap-2">
-            {ZONAS.map((z) => (
-              <button
-                key={z}
-                type="button"
-                onClick={() => toggleZona(z)}
-                className={`rounded-full px-3 py-1 text-xs font-medium transition border ${
-                  zonas.includes(z)
-                    ? 'border-primary-container bg-surface-low text-primary-container'
-                    : 'border-outline-variant text-on-surface-variant hover:border-primary-container'
-                }`}
-              >
-                {z}
-              </button>
-            ))}
-          </div>
+          <label className="block text-sm font-medium text-on-surface mb-2">
+            Zonas de trabajo <span className="text-ds-error">*</span>
+          </label>
+          <ZonaSelector
+            zonasDisponibles={zonasDisponibles}
+            defaultSelected={initialData.zonas}
+            defaultPropuesta={propuestaZona ?? ''}
+          />
         </div>
 
         <div>

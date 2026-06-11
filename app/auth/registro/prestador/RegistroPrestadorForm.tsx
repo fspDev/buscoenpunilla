@@ -6,15 +6,16 @@ import Link from 'next/link'
 import { registroPrestadorAction } from '@/app/auth/actions'
 import { SubmitButton } from '@/components/SubmitButton'
 import { OficioSelector } from '@/components/OficioSelector'
+import { ZonaSelector } from '@/components/ZonaSelector'
 import { PasswordInput } from '@/components/PasswordInput'
-import { ZONAS } from '@/lib/constants'
 const MAX_DESC = 200
 
 interface Props {
   oficiosDisponibles: string[]
+  zonasDisponibles: string[]
 }
 
-export function RegistroPrestadorForm({ oficiosDisponibles }: Props) {
+export function RegistroPrestadorForm({ oficiosDisponibles, zonasDisponibles }: Props) {
   const [state, action] = useFormState(registroPrestadorAction, null)
   const [paso, setPaso] = useState<1 | 2>(1)
   const [terminosAceptados, setTerminosAceptados] = useState(false)
@@ -25,14 +26,10 @@ export function RegistroPrestadorForm({ oficiosDisponibles }: Props) {
   const [password, setPassword] = useState('')
   const [erroresPaso1, setErroresPaso1] = useState<{ nombre?: string; email?: string; password?: string }>({})
 
-  // Paso 2 — solo para saber si tiene al menos un oficio (para habilitar submit)
+  // Paso 2 — solo para saber si tiene al menos un oficio/zona (para habilitar submit)
   const [tieneOficio, setTieneOficio] = useState(false)
+  const [tieneZona, setTieneZona]     = useState(false)
   const [descLen, setDescLen] = useState(0)
-  const [zonas, setZonas] = useState<string[]>([])
-
-  function toggleZona(zona: string) {
-    setZonas((prev) => prev.includes(zona) ? prev.filter((z) => z !== zona) : [...prev, zona])
-  }
 
   function validarPaso1() {
     const errs: typeof erroresPaso1 = {}
@@ -185,24 +182,11 @@ export function RegistroPrestadorForm({ oficiosDisponibles }: Props) {
               <label className="block text-sm font-medium text-on-surface mb-2">
                 Zonas de trabajo <span className="text-ds-error">*</span>
               </label>
-              {zonas.map((z) => <input key={z} type="hidden" name="zonas" value={z} />)}
-              <div className="flex flex-wrap gap-2">
-                {ZONAS.map((z) => (
-                  <button
-                    key={z}
-                    type="button"
-                    onClick={() => toggleZona(z)}
-                    className={`min-h-[36px] rounded-full border px-3 py-1 text-sm font-medium transition ${
-                      zonas.includes(z)
-                        ? 'border-primary-container bg-surface-low text-primary-container'
-                        : 'border-outline-variant text-on-surface-variant hover:border-primary-container hover:text-on-surface'
-                    }`}
-                  >
-                    {z}
-                  </button>
-                ))}
-              </div>
-              {zonas.length === 0 && (
+              <ZonaSelector
+                zonasDisponibles={zonasDisponibles}
+                onChange={(sel, prop) => setTieneZona(sel.length > 0 || prop.trim().length > 0)}
+              />
+              {!tieneZona && (
                 <p className="mt-1 text-xs text-ds-error">Seleccioná al menos una zona</p>
               )}
             </div>
@@ -262,7 +246,7 @@ export function RegistroPrestadorForm({ oficiosDisponibles }: Props) {
                 <SubmitButton
                   label="Crear perfil"
                   loadingLabel="Creando perfil..."
-                  disabled={!terminosAceptados || !tieneOficio || zonas.length === 0}
+                  disabled={!terminosAceptados || !tieneOficio || !tieneZona}
                 />
               </div>
             </div>

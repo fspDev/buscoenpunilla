@@ -47,15 +47,26 @@ export default async function HomePage() {
     { count: totalPrestadores },
     { data: oficiosRaw },
     { data: zonasRaw },
+    { data: oficiosLista },
+    { data: zonasLista },
   ] = await Promise.all([
     supabase.from('prestadores').select('id', { count: 'exact', head: true }).eq('activo', true),
     supabase.from('prestadores').select('oficio').eq('activo', true),
     supabase.from('prestadores').select('zonas_trabajo').eq('activo', true),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any).from('oficios').select('nombre').eq('activo', true).order('es_base', { ascending: false }).order('nombre'),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any).from('zonas').select('nombre').eq('activo', true).order('es_base', { ascending: false }).order('nombre'),
   ])
 
   const totalCount    = totalPrestadores ?? 0
   const oficiosCount  = new Set(oficiosRaw?.map((p) => p.oficio).filter(Boolean)).size
   const localesCount  = new Set(zonasRaw?.flatMap((p) => p.zonas_trabajo ?? []).filter(Boolean)).size
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const oficiosDisponibles = (oficiosLista as any[])?.map((o) => o.nombre as string) ?? []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const zonasDisponibles = (zonasLista as any[])?.map((z) => z.nombre as string) ?? []
 
   const mostrarStats  = totalCount >= 5
 
@@ -137,7 +148,10 @@ export default async function HomePage() {
             className="animate-fade-up mt-10 w-full"
             style={{ animationDelay: '480ms' }}
           >
-            <HeroBuscador />
+            <HeroBuscador
+              oficiosDisponibles={oficiosDisponibles}
+              zonasDisponibles={zonasDisponibles}
+            />
             <div className="mt-4 text-center">
               <Link
                 href="/auth/registro/prestador"

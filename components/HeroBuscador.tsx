@@ -4,9 +4,17 @@ import { useRouter } from 'next/navigation'
 import { useTransition } from 'react'
 import { OFICIOS, ZONAS } from '@/lib/constants'
 
-export function HeroBuscador() {
+interface Props {
+  oficiosDisponibles?: string[]
+  zonasDisponibles?: string[]
+}
+
+export function HeroBuscador({ oficiosDisponibles, zonasDisponibles }: Props = {}) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
+
+  const oficios = oficiosDisponibles?.length ? oficiosDisponibles : [...OFICIOS]
+  const zonas   = zonasDisponibles?.length ? zonasDisponibles : [...ZONAS]
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -30,7 +38,7 @@ export function HeroBuscador() {
         className="flex-1 rounded-xl bg-white/95 px-4 py-3 text-sm text-on-surface outline-none focus:ring-2 focus:ring-secondary-container min-w-0 cursor-pointer"
       >
         <option value="">¿Qué oficio buscás?</option>
-        {OFICIOS.map((o) => <option key={o} value={o}>{o}</option>)}
+        {oficios.map((o) => <option key={o} value={o}>{o}</option>)}
       </select>
 
       <select
@@ -39,7 +47,7 @@ export function HeroBuscador() {
         className="flex-1 rounded-xl bg-white/95 px-4 py-3 text-sm text-on-surface outline-none focus:ring-2 focus:ring-secondary-container min-w-0 cursor-pointer"
       >
         <option value="">Todas las zonas</option>
-        {ZONAS.map((z) => <option key={z} value={z}>{z}</option>)}
+        {zonas.map((z) => <option key={z} value={z}>{z}</option>)}
       </select>
 
       <button

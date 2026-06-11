@@ -2,15 +2,15 @@
 
 import { useRouter } from 'next/navigation'
 import { useTransition } from 'react'
-import { ZONAS } from '@/lib/constants'
 
 interface Props {
   oficio_default?: string
   zona_default?: string
   oficiosDisponibles: string[]
+  zonasDisponibles: string[]
 }
 
-export function BuscadorHeader({ oficio_default, zona_default, oficiosDisponibles }: Props) {
+export function BuscadorHeader({ oficio_default, zona_default, oficiosDisponibles, zonasDisponibles }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
 
@@ -48,7 +48,7 @@ export function BuscadorHeader({ oficio_default, zona_default, oficiosDisponible
               className="w-full rounded-lg border border-outline-variant bg-white px-3 py-2 text-sm text-on-surface outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container"
             >
               <option value="">Todas las zonas</option>
-              {ZONAS.map((z) => <option key={z} value={z}>{z}</option>)}
+              {zonasDisponibles.map((z) => <option key={z} value={z}>{z}</option>)}
             </select>
           </div>
           <button

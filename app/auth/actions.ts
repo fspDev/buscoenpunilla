@@ -74,17 +74,21 @@ export async function registroPrestadorAction(
   const descripcion     = (formData.get('descripcion') as string) || undefined
   const terminos        = formData.get('terminos')
   const oficio_propuesto = ((formData.get('oficio_propuesto') as string) || '').trim() || null
+  const zona_propuesta  = ((formData.get('zona_propuesta') as string) || '').trim() || null
 
   let oficios: string[] = []
   try {
     oficios = JSON.parse((formData.get('oficios_json') as string) || '[]')
   } catch { oficios = [] }
 
-  if (!nombre || !email || !password || zonas.length === 0 || !whatsapp) {
+  if (!nombre || !email || !password || !whatsapp) {
     return { error: 'Completá todos los campos requeridos.' }
   }
   if (oficios.length === 0 && !oficio_propuesto) {
     return { error: 'Seleccioná al menos un oficio.' }
+  }
+  if (zonas.length === 0 && !zona_propuesta) {
+    return { error: 'Seleccioná al menos una zona.' }
   }
   if (password.length < 8) {
     return { error: 'La contraseña debe tener al menos 8 caracteres.' }
@@ -111,13 +115,25 @@ export async function registroPrestadorAction(
     return { error: 'No se pudo crear la cuenta.' }
   }
 
-  // Si hay oficio propuesto, actualizar el registro usando service_role
-  if (oficio_propuesto) {
+  // Si hay propuesta de oficio o zona, actualizar el registro usando service_role
+  if (oficio_propuesto || zona_propuesta) {
     const { createAdminClient } = await import('@/lib/supabase/server')
     const admin = createAdminClient()
+    const update: Record<string, unknown> = {}
+    if (oficio_propuesto) {
+      update.oficio_propuesto = oficio_propuesto
+      update.estado_oficio    = 'pendiente'
+    }
+    if (zona_propuesta) {
+      update.zona_propuesta = zona_propuesta
+      update.estado_zona    = 'pendiente'
+      // Si no eligió zonas de la lista, limpiar el array (el trigger pudo dejar [''])
+      if (zonas.length === 0) update.zonas_trabajo = []
+      else update.zonas_trabajo = zonas
+    }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (admin.from('prestadores') as any)
-      .update({ oficio_propuesto, estado_oficio: 'pendiente' })
+      .update(update)
       .eq('id', usuario.id)
   }
 

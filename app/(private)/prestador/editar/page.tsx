@@ -9,21 +9,31 @@ const OFICIOS_FALLBACK = [
   'Soldador', 'Fumigador', 'Climatización/AC', 'Mudanzas', 'Otro',
 ]
 
+const ZONAS_FALLBACK = [
+  'San Antonio de Arredondo', 'Bialet Massé', 'Mayu Sumaj',
+  'Villa Parque Síquiman', 'Villa Carlos Paz', 'Cosquín', 'La Falda',
+]
+
 export default async function EditarPerfilPage() {
   const { user, profile } = await requireRole('prestador')
   const supabase = createClient()
 
-  const [{ data: prestador }, { data: fotos }, { data: oficiosData }] = await Promise.all([
+  const [{ data: prestador }, { data: fotos }, { data: oficiosData }, { data: zonasData }] = await Promise.all([
     supabase.from('prestadores').select('*').eq('id', user.id).single(),
     supabase.from('fotos_trabajos').select('id, url, created_at')
       .eq('prestador_id', user.id).order('created_at', { ascending: false }),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase as any).from('oficios').select('nombre').eq('activo', true)
       .order('es_base', { ascending: false }).order('nombre'),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any).from('zonas').select('nombre').eq('activo', true)
+      .order('es_base', { ascending: false }).order('nombre'),
   ])
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const oficiosDisponibles = (oficiosData as any[])?.map((o) => o.nombre as string) ?? []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const zonasDisponibles = (zonasData as any[])?.map((z) => z.nombre as string) ?? []
 
   return (
     <div className="px-4 py-8 sm:px-8">
@@ -37,6 +47,7 @@ export default async function EditarPerfilPage() {
       <EditarPerfilForm
         prestador_id={user.id}
         oficiosDisponibles={oficiosDisponibles.length ? oficiosDisponibles : OFICIOS_FALLBACK}
+        zonasDisponibles={zonasDisponibles.length ? zonasDisponibles : ZONAS_FALLBACK}
         initialData={{
           nombre:           profile?.nombre ?? '',
           whatsapp:         profile?.whatsapp ?? '',
@@ -49,6 +60,8 @@ export default async function EditarPerfilPage() {
           matricula:        prestador?.matricula ?? '',
           oficio_propuesto: (prestador as Record<string, unknown>)?.oficio_propuesto as string | null ?? null,
           estado_oficio:    (prestador as Record<string, unknown>)?.estado_oficio as string | null ?? null,
+          zona_propuesta:   (prestador as Record<string, unknown>)?.zona_propuesta as string | null ?? null,
+          estado_zona:      (prestador as Record<string, unknown>)?.estado_zona as string | null ?? null,
         }}
         fotos_trabajos={(fotos ?? []) as FotoTrabajo[]}
       />

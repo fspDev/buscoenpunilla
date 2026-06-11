@@ -20,6 +20,7 @@ export async function guardarPerfilAction(
   const zonas           = formData.getAll('zonas') as string[]
   const matricula       = (formData.get('matricula') as string)?.trim() || null
   const oficio_propuesto = ((formData.get('oficio_propuesto') as string) || '').trim() || null
+  const zona_propuesta  = ((formData.get('zona_propuesta') as string) || '').trim() || null
 
   let oficios: string[] = []
   try {
@@ -29,6 +30,7 @@ export async function guardarPerfilAction(
   if (!nombre)   return { error: 'El nombre es requerido.' }
   if (!whatsapp) return { error: 'El WhatsApp es requerido.' }
   if (oficios.length === 0 && !oficio_propuesto) return { error: 'Seleccioná al menos un oficio.' }
+  if (zonas.length === 0 && !zona_propuesta) return { error: 'Seleccioná al menos una zona.' }
 
   if (oficios.length === 0 && oficio_propuesto) oficios = ['Otro']
 
@@ -56,6 +58,14 @@ export async function guardarPerfilAction(
     // Si cambió a oficio de lista, limpiar propuesta anterior y marcar aprobado
     prestadorUpdate.oficio_propuesto = null
     prestadorUpdate.estado_oficio    = 'aprobado'
+  }
+
+  if (zona_propuesta) {
+    prestadorUpdate.zona_propuesta = zona_propuesta
+    prestadorUpdate.estado_zona    = 'pendiente'
+  } else {
+    prestadorUpdate.zona_propuesta = null
+    prestadorUpdate.estado_zona    = 'aprobado'
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

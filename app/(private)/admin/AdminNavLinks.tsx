@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 
 interface Props {
   pendingOficiosCount?: number
+  pendingZonasCount?: number
 }
 
 const BASE_LINKS = [
@@ -14,11 +15,12 @@ const BASE_LINKS = [
   { href: '/admin/resenas',     label: 'Reseñas',     icon: '⭐' },
   { href: '/admin/reportes',    label: 'Reportes',    icon: '🚩' },
   { href: '/admin/oficios',     label: 'Oficios',     icon: '🗂️' },
+  { href: '/admin/zonas',       label: 'Zonas',       icon: '📍' },
   { href: '/admin/metricas',    label: 'Métricas',    icon: '📈' },
   { href: '/admin/contacto',    label: 'Contacto',    icon: '✉️'  },
 ]
 
-export function AdminNavLinks({ pendingOficiosCount = 0 }: Props) {
+export function AdminNavLinks({ pendingOficiosCount = 0, pendingZonasCount = 0 }: Props) {
   const pathname = usePathname()
 
   return (
@@ -40,6 +42,11 @@ export function AdminNavLinks({ pendingOficiosCount = 0 }: Props) {
           {href === '/admin/oficios' && pendingOficiosCount > 0 && (
             <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-white">
               {pendingOficiosCount}
+            </span>
+          )}
+          {href === '/admin/zonas' && pendingZonasCount > 0 && (
+            <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-white">
+              {pendingZonasCount}
             </span>
           )}
         </Link>

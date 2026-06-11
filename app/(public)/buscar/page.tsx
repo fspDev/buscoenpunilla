@@ -13,6 +13,11 @@ const OFICIOS_FALLBACK = [
   'Soldador', 'Fumigador', 'Climatización/AC', 'Mudanzas', 'Otro',
 ]
 
+const ZONAS_FALLBACK = [
+  'San Antonio de Arredondo', 'Bialet Massé', 'Mayu Sumaj',
+  'Villa Parque Síquiman', 'Villa Carlos Paz', 'Cosquín', 'La Falda',
+]
+
 interface PageProps {
   searchParams: { oficio?: string; zona?: string }
 }
@@ -28,6 +33,19 @@ async function getOficios(): Promise<string[]> {
     .order('nombre')
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (data as any[])?.map((o) => o.nombre as string) ?? []
+}
+
+async function getZonas(): Promise<string[]> {
+  const supabase = createClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data } = await (supabase as any)
+    .from('zonas')
+    .select('nombre')
+    .eq('activo', true)
+    .order('es_base', { ascending: false })
+    .order('nombre')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (data as any[])?.map((z) => z.nombre as string) ?? []
 }
 
 async function getPrestadores(oficio?: string, zona?: string): Promise<Prestador[]> {
@@ -128,7 +146,7 @@ async function ResultadosBusqueda({ oficio, zona }: { oficio?: string; zona?: st
 
 export default async function BuscarPage({ searchParams }: PageProps) {
   const { oficio, zona } = searchParams
-  const oficios = await getOficios()
+  const [oficios, zonas] = await Promise.all([getOficios(), getZonas()])
 
   return (
     <div className="min-h-screen bg-surface">
@@ -137,6 +155,7 @@ export default async function BuscarPage({ searchParams }: PageProps) {
           oficio_default={oficio}
           zona_default={zona}
           oficiosDisponibles={oficios.length ? oficios : OFICIOS_FALLBACK}
+          zonasDisponibles={zonas.length ? zonas : ZONAS_FALLBACK}
         />
       </Suspense>
 

@@ -8,7 +8,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const admin = createAdminClient()
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { count: pendingOficios } = await (admin.from('prestadores').select('id', { count: 'exact', head: true }) as any).eq('estado_oficio', 'pendiente')
+  const [{ count: pendingOficios }, { count: pendingZonas }] = await Promise.all([
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (admin.from('prestadores').select('id', { count: 'exact', head: true }) as any).eq('estado_oficio', 'pendiente'),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (admin.from('prestadores').select('id', { count: 'exact', head: true }) as any).eq('estado_zona', 'pendiente'),
+  ])
 
   return (
     <div className="flex min-h-[calc(100vh-57px)]">
@@ -19,7 +24,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <p className="mt-0.5 truncate text-sm font-medium text-on-surface">{profile?.nombre}</p>
         </div>
         <nav className="flex flex-col gap-0.5 p-2">
-          <AdminNavLinks pendingOficiosCount={pendingOficios ?? 0} />
+          <AdminNavLinks pendingOficiosCount={pendingOficios ?? 0} pendingZonasCount={pendingZonas ?? 0} />
         </nav>
         <div className="mt-auto border-t border-outline-variant p-2">
           <Link
