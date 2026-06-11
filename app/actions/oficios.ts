@@ -63,7 +63,7 @@ export async function rechazarOficioPropuesto(prestador_id: string, oficio_propu
   const { user } = await verificarAdmin()
   const admin = db()
 
-  await admin.from('prestadores').update({ estado_oficio: 'rechazado' }).eq('id', prestador_id)
+  await admin.from('prestadores').update({ estado_oficio: 'rechazado', oficio_propuesto: null }).eq('id', prestador_id)
 
   await admin.from('notificaciones').insert({
     user_id: prestador_id,

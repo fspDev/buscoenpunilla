@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 
 type ActionState = { error?: string; ok?: boolean } | null
 
@@ -59,7 +59,9 @@ export async function guardarPerfilAction(
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error: errPrestador } = await (supabase.from('prestadores') as any)
+  const admin = createAdminClient() as any
+  const { error: errPrestador } = await admin
+    .from('prestadores')
     .update(prestadorUpdate)
     .eq('id', user.id)
 
