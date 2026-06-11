@@ -7,6 +7,7 @@ import { toggleOficioActivo, renombrarOficio, eliminarOficio, crearOficio } from
 interface Propuesta {
   prestador_id: string
   nombre: string
+  whatsapp: string | null
   oficio_propuesto: string
   created_at: string
 }
@@ -79,6 +80,7 @@ function PropuestasTab({ propuestas, oficiosNombres }: { propuestas: Propuesta[]
           key={p.prestador_id}
           prestador_id={p.prestador_id}
           nombre={p.nombre}
+          whatsapp={p.whatsapp}
           oficio_propuesto={p.oficio_propuesto}
           created_at={p.created_at}
           oficiosExistentes={oficiosNombres}

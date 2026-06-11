@@ -13,23 +13,29 @@ function db() {
 
 // ─── PROPUESTAS ───────────────────────────────────────────────
 
-export async function aprobarOficioPropuesto(prestador_id: string, nombre_oficio: string) {
+export async function aprobarOficioPropuesto(
+  prestador_id: string,
+  nombre_original: string,
+  nombre_editado: string,
+) {
   const { user } = await verificarAdmin()
   const admin = db()
 
-  await admin.from('oficios').upsert({ nombre: nombre_oficio, activo: true, es_base: false }, { onConflict: 'nombre' })
+  const nombre = nombre_editado.trim() || nombre_original
+
+  await admin.from('oficios').upsert({ nombre, activo: true, es_base: false }, { onConflict: 'nombre' })
 
   await admin.from('prestadores')
-    .update({ oficio: nombre_oficio, estado_oficio: 'aprobado', oficio_propuesto: null })
+    .update({ oficio: nombre, estado_oficio: 'aprobado', oficio_propuesto: null })
     .eq('id', prestador_id)
 
   await admin.from('notificaciones').insert({
     user_id: prestador_id,
     tipo: 'oficio_aprobado',
-    mensaje: `Tu oficio "${nombre_oficio}" fue aprobado. Ya aparecés bien categorizado en BUSCO.`,
+    mensaje: `Tu oficio "${nombre}" fue aprobado. Ya aparecés bien categorizado en BUSCO.`,
   })
 
-  await auditarAccion(user.id, 'aprobar_oficio_propuesto', prestador_id, { nombre_oficio })
+  await auditarAccion(user.id, 'aprobar_oficio_propuesto', prestador_id, { nombre_original, nombre_aprobado: nombre })
   revalidatePath('/admin/oficios')
   revalidatePath('/admin/prestadores')
 }

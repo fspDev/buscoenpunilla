@@ -9,7 +9,7 @@ export default async function AdminOficiosPage() {
   const admin = createAdminClient() as any
 
   const propuestasQuery = admin.from('prestadores')
-    .select('id, oficio_propuesto, created_at, profiles!inner(nombre)')
+    .select('id, oficio_propuesto, created_at, profiles!inner(nombre, whatsapp)')
     .eq('estado_oficio', 'pendiente')
     .not('oficio_propuesto', 'is', null)
     .order('created_at', { ascending: true })
@@ -37,10 +37,11 @@ export default async function AdminOficiosPage() {
   }
 
   const propuestas = (propuestasData ?? []).map((p: any) => {
-    const profiles = p.profiles as { nombre: string | null } | null
+    const profiles = p.profiles as { nombre: string | null; whatsapp: string | null } | null
     return {
       prestador_id:     p.id as string,
       nombre:           profiles?.nombre ?? 'Sin nombre',
+      whatsapp:         profiles?.whatsapp ?? null,
       oficio_propuesto: (p.oficio_propuesto as string) ?? '',
       created_at:       p.created_at as string,
     }
