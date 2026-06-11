@@ -142,17 +142,33 @@ export async function eliminarOficio(id: string, nombre: string) {
   const { user } = await verificarAdmin()
   const admin = db()
 
-  const { count } = await admin
-    .from('prestadores')
-    .select('id', { count: 'exact', head: true })
-    .eq('oficio', nombre)
+  if (nombre === 'Otro') {
+    return { error: 'El oficio "Otro" no se puede eliminar: es la categoría de respaldo.' }
+  }
 
-  if ((count ?? 0) > 0) {
-    return { error: `No se puede eliminar: hay ${count} prestador${count === 1 ? '' : 'es'} con este oficio.` }
+  // Reasignar a "Otro" los prestadores que tienen este oficio como principal
+  await admin.from('prestadores').update({ oficio: 'Otro' }).eq('oficio', nombre)
+
+  // Quitar el oficio del array de oficios secundarios de los prestadores afectados
+  const { data: afectados } = await admin
+    .from('prestadores')
+    .select('id, oficios')
+    .contains('oficios', [nombre])
+
+  let reasignados = 0
+  if (afectados) {
+    reasignados = afectados.length
+    for (const p of afectados) {
+      const nuevosOficios = ((p.oficios as string[]) ?? []).map((o: string) =>
+        o === nombre ? 'Otro' : o
+      ).filter((o: string, i: number, arr: string[]) => arr.indexOf(o) === i)
+      await admin.from('prestadores').update({ oficios: nuevosOficios }).eq('id', p.id)
+    }
   }
 
   await admin.from('oficios').delete().eq('id', id)
-  await auditarAccion(user.id, 'eliminar_oficio', id, { nombre })
+  await auditarAccion(user.id, 'eliminar_oficio', id, { nombre, prestadores_reasignados: reasignados })
   revalidatePath('/admin/oficios')
+  revalidatePath('/buscar')
   return { ok: true }
 }

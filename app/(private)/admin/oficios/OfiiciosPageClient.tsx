@@ -129,11 +129,10 @@ function ListaTab({ oficios }: { oficios: OficioRow[] }) {
   }
 
   function handleEliminar(id: string, nombre: string, total: number) {
-    if (total > 0) {
-      setError(`No se puede eliminar "${nombre}": hay ${total} prestador${total > 1 ? 'es' : ''} con este oficio.`)
-      return
-    }
-    if (!window.confirm(`¿Eliminar el oficio "${nombre}"? Esta acción no se puede deshacer.`)) return
+    const aviso = total > 0
+      ? `¿Eliminar el oficio "${nombre}"? Hay ${total} prestador${total > 1 ? 'es' : ''} con este oficio: pasará${total > 1 ? 'n' : ''} a la categoría "Otro". Esta acción no se puede deshacer.`
+      : `¿Eliminar el oficio "${nombre}"? Esta acción no se puede deshacer.`
+    if (!window.confirm(aviso)) return
     startTransition(async () => {
       const res = await eliminarOficio(id, nombre)
       if (res?.error) setError(res.error)
@@ -220,7 +219,7 @@ function ListaTab({ oficios }: { oficios: OficioRow[] }) {
                   >
                     Renombrar
                   </button>
-                  {o.total_prestadores === 0 && (
+                  {o.nombre !== 'Otro' && (
                     <button
                       onClick={() => handleEliminar(o.id, o.nombre, o.total_prestadores)}
                       className="text-xs text-ds-error hover:underline"
