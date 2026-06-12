@@ -1,6 +1,30 @@
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
 
-export function Footer() {
+const ZONAS_FALLBACK = [
+  'San Antonio de Arredondo',
+  'Bialet Massé',
+  'Mayu Sumaj',
+  'Villa Parque Síquiman',
+  'Villa Carlos Paz',
+  'Cosquín',
+  'La Falda',
+]
+
+export async function Footer() {
+  const supabase = createClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: zonasData } = await (supabase as any)
+    .from('zonas')
+    .select('nombre')
+    .eq('activo', true)
+    .order('es_base', { ascending: false })
+    .order('nombre')
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const zonas = (zonasData as any[])?.map((z) => z.nombre as string) ?? ZONAS_FALLBACK
+  const zonasTexto = zonas.join(' · ')
+
   return (
     <footer className="border-t border-outline-variant bg-white px-4 py-10">
       <div className="mx-auto max-w-container">
@@ -22,13 +46,19 @@ export function Footer() {
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-outline mb-3">Zonas</p>
             <p className="text-sm text-on-surface-variant leading-relaxed">
-              San Antonio de Arredondo · Mayu Sumaj · Villa Parque Síquiman · Valle de Punilla · Córdoba
+              {zonasTexto}
             </p>
           </div>
         </div>
 
         <div className="mt-8 border-t border-outline-variant pt-6 text-center text-xs text-outline">
-          © {new Date().getFullYear()} BUSCO
+          <p>© {new Date().getFullYear()} BUSCO</p>
+          <p className="mt-1">
+            Hecho por{' '}
+            <Link href="https://www.3libras.com.ar" target="_blank" rel="noopener noreferrer" className="text-primary-container hover:underline">
+              3 libras
+            </Link>
+          </p>
         </div>
       </div>
     </footer>
