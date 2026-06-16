@@ -1,5 +1,12 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { RegistroPrestadorForm } from './RegistroPrestadorForm'
+
+export const metadata: Metadata = {
+  title: 'Registrate como prestador',
+  description: 'Creá tu perfil gratis en BUSCO en Punilla. Recibí clientes por WhatsApp y hacé crecer tu reputación con reseñas reales en el Valle de Punilla.',
+  alternates: { canonical: '/auth/registro/prestador' },
+}
 
 const OFICIOS_FALLBACK = [
   'Electricidad', 'Plomería', 'Gasista', 'Albañilería', 'Carpintería',

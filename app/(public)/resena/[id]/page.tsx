@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { RatingStars } from '@/components/RatingStars'
 import { ResenaForm } from '@/components/ResenaForm'
@@ -7,6 +8,26 @@ import { Footer } from '@/components/Footer'
 
 interface PageProps {
   params: { id: string }
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const supabase = createClient()
+  const { data: prestador } = await supabase
+    .from('prestadores_publicos')
+    .select('nombre, oficio')
+    .eq('id', params.id)
+    .single()
+
+  if (!prestador) return {}
+
+  const title = `Dejar reseña a ${prestador.nombre}`
+  const description = `Contá cómo fue tu experiencia con ${prestador.nombre}${prestador.oficio ? ` (${prestador.oficio})` : ''} en BUSCO en Punilla.`
+
+  return {
+    title,
+    description,
+    alternates: { canonical: `/resena/${params.id}` },
+  }
 }
 
 export default async function ResenaPublicaPage({ params }: PageProps) {

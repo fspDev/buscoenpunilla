@@ -1,11 +1,18 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { BuscadorHeader } from '@/components/BuscadorHeader'
 import { PrestadorCard } from '@/components/PrestadorCard'
 import { PrestadorCardSkeletonGrid } from '@/components/PrestadorCardSkeleton'
 import { AnimateIn } from '@/components/AnimateIn'
 import type { Prestador } from '@/types'
+
+export const metadata: Metadata = {
+  title: 'Buscar prestadores de oficios y servicios',
+  description: 'Buscá electricistas, plomeros, albañiles y más prestadores de servicios en el Valle de Punilla. Filtrá por oficio y zona y contactá directo por WhatsApp.',
+  alternates: { canonical: '/buscar' },
+}
 
 const OFICIOS_FALLBACK = [
   'Electricista', 'Plomero', 'Gasista', 'Albañil', 'Carpintero',
