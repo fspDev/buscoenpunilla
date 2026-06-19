@@ -129,17 +129,17 @@ export function OficioPropuestaCard({
           </button>
           <div className="flex gap-3">
             <button
-              onClick={handleAprobar}
-              disabled={!nombreEditado.trim()}
-              className="text-xs font-medium text-primary-container hover:underline disabled:cursor-not-allowed disabled:opacity-40 transition"
-            >
-              Renombrar
-            </button>
-            <button
               onClick={handleEliminar}
               className="text-xs font-medium text-ds-error hover:underline transition"
             >
-              Eliminar
+              Rechazar
+            </button>
+            <button
+              onClick={handleAprobar}
+              disabled={!nombreEditado.trim()}
+              className="rounded-lg bg-primary-container px-3 py-1.5 text-xs font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              ✓ Aprobar
             </button>
           </div>
         </div>

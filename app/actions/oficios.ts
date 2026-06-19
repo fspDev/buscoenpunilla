@@ -23,10 +23,25 @@ export async function aprobarOficioPropuesto(
 
   const nombre = nombre_editado.trim() || nombre_original
 
+  // 1. Agregar el oficio a la lista general (si no existe ya)
   await admin.from('oficios').upsert({ nombre, activo: true, es_base: false }, { onConflict: 'nombre' })
 
+  // 2. Asociar el oficio al prestador: reemplazar el placeholder "Otro" por el
+  //    oficio aprobado en el array `oficios` (que es lo que usa la búsqueda y el
+  //    perfil público), y ajustar el oficio principal.
+  const { data: prest } = await admin
+    .from('prestadores').select('oficio, oficios').eq('id', prestador_id).single()
+
+  const previos: string[] = ((prest?.oficios as string[]) ?? []).filter(Boolean)
+  let nuevosOficios = previos.map((o) => (o === 'Otro' ? nombre : o))
+  if (!nuevosOficios.includes(nombre)) nuevosOficios.push(nombre)
+  nuevosOficios = nuevosOficios.filter((o, i, arr) => arr.indexOf(o) === i)
+
+  // Principal: mantener el actual si ya era un oficio real; si era "Otro"/vacío, usar el aprobado.
+  const principal = prest?.oficio && prest.oficio !== 'Otro' ? prest.oficio : nombre
+
   await admin.from('prestadores')
-    .update({ oficio: nombre, estado_oficio: 'aprobado', oficio_propuesto: null })
+    .update({ oficio: principal, oficios: nuevosOficios, estado_oficio: 'aprobado', oficio_propuesto: null })
     .eq('id', prestador_id)
 
   await admin.from('notificaciones').insert({
@@ -44,8 +59,19 @@ export async function fusionarOficioPropuesto(prestador_id: string, oficio_propu
   const { user } = await verificarAdmin()
   const admin = db()
 
+  // Reemplazar el placeholder "Otro" por el oficio destino en el array `oficios`.
+  const { data: prest } = await admin
+    .from('prestadores').select('oficio, oficios').eq('id', prestador_id).single()
+
+  const previos: string[] = ((prest?.oficios as string[]) ?? []).filter(Boolean)
+  let nuevosOficios = previos.map((o) => (o === 'Otro' ? oficio_destino : o))
+  if (!nuevosOficios.includes(oficio_destino)) nuevosOficios.push(oficio_destino)
+  nuevosOficios = nuevosOficios.filter((o, i, arr) => arr.indexOf(o) === i)
+
+  const principal = prest?.oficio && prest.oficio !== 'Otro' ? prest.oficio : oficio_destino
+
   await admin.from('prestadores')
-    .update({ oficio: oficio_destino, oficio_fusionado: oficio_propuesto, estado_oficio: 'fusionado' })
+    .update({ oficio: principal, oficios: nuevosOficios, oficio_fusionado: oficio_propuesto, estado_oficio: 'fusionado' })
     .eq('id', prestador_id)
 
   await admin.from('notificaciones').insert({

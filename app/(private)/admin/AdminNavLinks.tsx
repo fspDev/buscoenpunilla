@@ -6,6 +6,8 @@ import { usePathname } from 'next/navigation'
 interface Props {
   pendingOficiosCount?: number
   pendingZonasCount?: number
+  contactosNoLeidosCount?: number
+  reportesPendientesCount?: number
 }
 
 const BASE_LINKS = [
@@ -20,8 +22,20 @@ const BASE_LINKS = [
   { href: '/admin/contacto',    label: 'Contacto',    icon: '✉️'  },
 ]
 
-export function AdminNavLinks({ pendingOficiosCount = 0, pendingZonasCount = 0 }: Props) {
+export function AdminNavLinks({
+  pendingOficiosCount = 0,
+  pendingZonasCount = 0,
+  contactosNoLeidosCount = 0,
+  reportesPendientesCount = 0,
+}: Props) {
   const pathname = usePathname()
+
+  const badge: Record<string, number> = {
+    '/admin/oficios':  pendingOficiosCount,
+    '/admin/zonas':    pendingZonasCount,
+    '/admin/contacto': contactosNoLeidosCount,
+    '/admin/reportes': reportesPendientesCount,
+  }
 
   return (
     <>
@@ -39,14 +53,9 @@ export function AdminNavLinks({ pendingOficiosCount = 0, pendingZonasCount = 0 }
             <span className="text-base leading-none">{icon}</span>
             {label}
           </span>
-          {href === '/admin/oficios' && pendingOficiosCount > 0 && (
+          {(badge[href] ?? 0) > 0 && (
             <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-white">
-              {pendingOficiosCount}
-            </span>
-          )}
-          {href === '/admin/zonas' && pendingZonasCount > 0 && (
-            <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-white">
-              {pendingZonasCount}
+              {badge[href]}
             </span>
           )}
         </Link>

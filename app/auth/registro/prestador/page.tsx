@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { RegistroPrestadorForm } from './RegistroPrestadorForm'
 
 export const metadata: Metadata = {
@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   description: 'Creá tu perfil gratis en BUSCO en Punilla. Recibí clientes por WhatsApp y hacé crecer tu reputación con reseñas reales en el Valle de Punilla.',
   alternates: { canonical: '/auth/registro/prestador' },
 }
+
+// Siempre cargar oficios/zonas frescos desde la DB (sin Data Cache).
+export const dynamic = 'force-dynamic'
 
 const OFICIOS_FALLBACK = [
   'Electricidad', 'Plomería', 'Gasista', 'Albañilería', 'Carpintería',
@@ -20,7 +23,7 @@ const ZONAS_FALLBACK = [
 ]
 
 export default async function RegistroPrestadorPage() {
-  const supabase = createClient()
+  const supabase = createAdminClient()
   const [{ data: oficiosData }, { data: zonasData }] = await Promise.all([
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase as any).from('oficios').select('nombre').eq('activo', true)

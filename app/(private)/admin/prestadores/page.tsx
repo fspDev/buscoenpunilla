@@ -38,7 +38,7 @@ export default async function AdminPrestadoresPage({ searchParams }: PageProps) 
   const totalPaginas = Math.ceil((count ?? 0) / POR_PAGINA)
 
   return (
-    <div className="px-6 py-8 space-y-5">
+    <div className="px-4 sm:px-6 py-6 sm:py-8 space-y-5">
       <h1 className="text-2xl font-bold text-on-surface">Prestadores</h1>
 
       <FiltrosTabla

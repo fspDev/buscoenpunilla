@@ -10,6 +10,7 @@ import { FotoUploader } from '@/components/FotoUploader'
 import { OficioSelector } from '@/components/OficioSelector'
 import { ZonaSelector } from '@/components/ZonaSelector'
 import { SubmitButton } from '@/components/SubmitButton'
+import { EliminarCuentaBtn } from '@/components/EliminarCuentaBtn'
 import type { FotoTrabajo } from '@/types'
 
 const MAX_DESC = 200
@@ -329,6 +330,9 @@ export function EditarPerfilForm({ prestador_id, oficiosDisponibles, zonasDispon
           Cambiar mi cuenta a Vecino
         </button>
       </section>
+
+      {/* Eliminar cuenta */}
+      <EliminarCuentaBtn />
 
       <Link href="/prestador/dashboard" className="block text-center text-sm text-on-surface-variant hover:text-on-surface transition">
         Cancelar

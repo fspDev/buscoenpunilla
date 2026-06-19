@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { requireRole } from '@/lib/auth'
 import { FiltrosTabla } from '@/components/admin/FiltrosTabla'
 import { SuspenderClienteBtn } from '@/components/admin/SuspenderClienteBtn'
@@ -12,24 +12,53 @@ interface PageProps {
 
 export default async function AdminClientesPage({ searchParams }: PageProps) {
   await requireRole('admin')
-  const supabase = createClient()
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = createAdminClient() as any
   const page = Number(searchParams.page ?? 1)
   const from = (page - 1) * POR_PAGINA
 
+  // Query profiles directly — service role bypasses RLS
   let query = supabase
-    .from('admin_clientes')
-    .select('*', { count: 'exact' })
+    .from('profiles')
+    .select('id, nombre, localidad, whatsapp, created_at', { count: 'exact' })
+    .eq('role', 'cliente')
     .order('created_at', { ascending: false })
     .range(from, from + POR_PAGINA - 1)
 
   if (searchParams.zona) query = query.eq('localidad', searchParams.zona)
   if (searchParams.q)    query = query.ilike('nombre', `%${searchParams.q}%`)
 
-  const { data, count } = await query
+  const { data: profiles, count } = await query
   const totalPaginas = Math.ceil((count ?? 0) / POR_PAGINA)
 
+  // Get emails for current page via admin auth API
+  const ids: string[] = (profiles ?? []).map((p: { id: string }) => p.id)
+  const emailMap: Record<string, string> = {}
+  if (ids.length > 0) {
+    const { data: authData } = await supabase.auth.admin.listUsers({ perPage: 1000 })
+    for (const u of authData?.users ?? []) {
+      if (ids.includes(u.id)) emailMap[u.id] = u.email ?? ''
+    }
+  }
+
+  // Counts de reseñas y contactos
+  const countMap: Record<string, { resenas: number; contactos: number }> = {}
+  if (ids.length > 0) {
+    const [{ data: resenas }, { data: contactos }] = await Promise.all([
+      supabase.from('resenas').select('cliente_id').in('cliente_id', ids),
+      supabase.from('contactos_log').select('cliente_id').in('cliente_id', ids),
+    ])
+    for (const id of ids) {
+      countMap[id] = {
+        resenas:   (resenas   ?? []).filter((r: { cliente_id: string }) => r.cliente_id === id).length,
+        contactos: (contactos ?? []).filter((c: { cliente_id: string }) => c.cliente_id === id).length,
+      }
+    }
+  }
+
   return (
-    <div className="px-6 py-8 space-y-5">
+    <div className="px-4 sm:px-6 py-6 sm:py-8 space-y-5">
       <h1 className="text-2xl font-bold text-on-surface">Clientes</h1>
 
       <FiltrosTabla
@@ -57,13 +86,13 @@ export default async function AdminClientesPage({ searchParams }: PageProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-outline-variant">
-            {(data ?? []).map((c) => (
+            {(profiles ?? []).map((c: { id: string; nombre: string | null; localidad: string | null; whatsapp: string | null; created_at: string }) => (
               <tr key={c.id} className="hover:bg-surface-low transition">
                 <td className="px-4 py-2.5 font-medium text-on-surface">{c.nombre ?? '—'}</td>
-                <td className="px-4 py-2.5 text-on-surface-variant">{c.email}</td>
+                <td className="px-4 py-2.5 text-on-surface-variant">{emailMap[c.id] ?? '—'}</td>
                 <td className="px-4 py-2.5 text-on-surface-variant">{c.localidad ?? '—'}</td>
-                <td className="px-4 py-2.5 text-right text-on-surface-variant">{c.total_resenas}</td>
-                <td className="px-4 py-2.5 text-right text-on-surface-variant">{c.total_contactos}</td>
+                <td className="px-4 py-2.5 text-right text-on-surface-variant">{countMap[c.id]?.resenas ?? 0}</td>
+                <td className="px-4 py-2.5 text-right text-on-surface-variant">{countMap[c.id]?.contactos ?? 0}</td>
                 <td className="px-4 py-2.5 text-xs text-outline">
                   {new Date(c.created_at).toLocaleDateString('es-AR')}
                 </td>

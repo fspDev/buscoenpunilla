@@ -3,6 +3,9 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { requireRole } from '@/lib/auth'
 import { OficiosPageClient } from './OfiiciosPageClient'
 
+// Las propuestas pendientes deben verse siempre frescas (sin Data Cache).
+export const dynamic = 'force-dynamic'
+
 export default async function AdminOficiosPage() {
   await requireRole('admin')
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

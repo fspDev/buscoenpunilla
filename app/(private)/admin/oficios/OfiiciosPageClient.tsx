@@ -31,7 +31,7 @@ export function OficiosPageClient({ propuestas, oficios, oficiosNombres }: Props
   const [tab, setTab] = useState<'propuestas' | 'lista'>('propuestas')
 
   return (
-    <div className="px-6 py-8 space-y-6">
+    <div className="px-4 sm:px-6 py-6 sm:py-8 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-on-surface">Oficios</h1>
       </div>
