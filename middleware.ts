@@ -8,6 +8,9 @@ function redirigirCanonico(request: NextRequest): NextResponse | null {
   const proto = request.headers.get('x-forwarded-proto') ?? request.nextUrl.protocol.replace(':', '')
   const hostSinWww = host.replace(/^www\./, '')
 
+  // Nunca redirigir en desarrollo local (rompería http://localhost y los POST).
+  if (host.startsWith('localhost') || host.startsWith('127.0.0.1')) return null
+
   if (host === hostSinWww && proto === 'https') return null
 
   const url = request.nextUrl.clone()
