@@ -1,27 +1,34 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { requireRole } from '@/lib/auth'
-import { marcarLeidoAction } from '@/app/actions/admin-contacto'
+import { MensajeAcciones } from '@/components/admin/MensajeAcciones'
+
+export const dynamic = 'force-dynamic'
+
+const TIPO_ERROR = 'Error / Bug'
 
 interface PageProps { searchParams: { tab?: string } }
 
 export default async function AdminContactoPage({ searchParams }: PageProps) {
   await requireRole('admin')
-  const supabase  = createClient()
+  const supabase  = createAdminClient()
   const soloNoLeidos = searchParams.tab === 'no-leidos'
 
+  // Los reportes del botón "Reportar error" se gestionan en /admin/reportes.
   let query = supabase
     .from('mensajes_contacto')
     .select('*')
+    .neq('tipo', TIPO_ERROR)
     .order('created_at', { ascending: false })
 
   if (soloNoLeidos) query = query.eq('leido', false)
 
   const { data: mensajes } = await query
   const { count: noLeidos } = await supabase
-    .from('mensajes_contacto').select('id', { count: 'exact', head: true }).eq('leido', false)
+    .from('mensajes_contacto').select('id', { count: 'exact', head: true })
+    .neq('tipo', TIPO_ERROR).eq('leido', false)
 
   return (
-    <div className="px-6 py-8 space-y-5">
+    <div className="px-4 sm:px-6 py-6 sm:py-8 space-y-5">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-on-surface">Mensajes de contacto</h1>
         {(noLeidos ?? 0) > 0 && (
@@ -55,19 +62,12 @@ export default async function AdminContactoPage({ searchParams }: PageProps) {
                 <p className="text-sm text-on-surface-variant">{m.email}</p>
                 <span className="mt-1 inline-block rounded-full bg-surface-base px-2 py-0.5 text-xs text-on-surface-variant">{m.tipo}</span>
               </div>
-              <div className="text-right flex-shrink-0">
-                <p className="text-xs text-outline">{new Date(m.created_at).toLocaleString('es-AR')}</p>
-                {!m.leido && (
-                  <form action={marcarLeidoAction}>
-                    <input type="hidden" name="id" value={m.id} />
-                    <button type="submit" className="mt-1 text-xs text-primary-container hover:underline">
-                      Marcar como leído
-                    </button>
-                  </form>
-                )}
-              </div>
+              <p className="text-xs text-outline flex-shrink-0">{new Date(m.created_at).toLocaleString('es-AR')}</p>
             </div>
-            <p className="mt-3 text-sm text-on-surface leading-relaxed">{m.mensaje}</p>
+            <p className="mt-3 whitespace-pre-line text-sm text-on-surface leading-relaxed">{m.mensaje}</p>
+            <div className="mt-4 border-t border-outline-variant pt-3">
+              <MensajeAcciones id={m.id} leido={m.leido} userId={m.user_id} />
+            </div>
           </div>
         ))}
       </div>

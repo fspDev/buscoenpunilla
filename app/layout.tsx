@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
+// ⚠️ TEMPORAL (beta): quitar antes del lanzamiento junto con el componente y la action.
+import { ReportarErrorButton } from "@/components/ReportarErrorButton";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -52,6 +54,8 @@ export default function RootLayout({
         </a>
         <Navbar />
         <div id="main-content">{children}</div>
+        {/* ⚠️ TEMPORAL (beta): botón de reporte de errores en todas las páginas */}
+        <ReportarErrorButton />
       </body>
     </html>
   );

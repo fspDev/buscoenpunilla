@@ -1,8 +1,10 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
 
-export const metadata = {
-  title: 'Términos y Condiciones – BUSCO',
-  description: 'Términos y Condiciones de uso de la plataforma BUSCO.',
+export const metadata: Metadata = {
+  title: 'Términos y Condiciones',
+  description: 'Términos y Condiciones de uso de la plataforma BUSCO en Punilla, el directorio de servicios y oficios locales del Valle de Punilla.',
+  alternates: { canonical: '/terminos' },
 }
 
 export default function TerminosPage() {

@@ -1,12 +1,16 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { requireRole } from '@/lib/auth'
 import { EditarPerfilForm } from './EditarPerfilForm'
 import type { FotoTrabajo } from '@/types'
 
+// Siempre cargar la lista de oficios/zonas fresca desde la DB (sin Data Cache).
+export const dynamic = 'force-dynamic'
+
+// Fallback solo si la DB no responde — nombres alineados con la tabla `oficios`.
 const OFICIOS_FALLBACK = [
-  'Electricista', 'Plomero', 'Gasista', 'Albañil', 'Carpintero',
-  'Techista', 'Pintor', 'Jardinero', 'Cerrajero', 'Herrero',
-  'Soldador', 'Fumigador', 'Climatización/AC', 'Mudanzas', 'Otro',
+  'Albañilería', 'Carpintería', 'Cerrajería', 'Climatización/AC', 'Electricidad',
+  'Fumigación', 'Gasista', 'Herrería', 'Jardinería', 'Mudanzas',
+  'Pintura', 'Plomería', 'Soldadura', 'Techado', 'Otro',
 ]
 
 const ZONAS_FALLBACK = [
@@ -17,16 +21,20 @@ const ZONAS_FALLBACK = [
 export default async function EditarPerfilPage() {
   const { user, profile } = await requireRole('prestador')
   const supabase = createClient()
+  // El catálogo de oficios/zonas se lee con service role: es data pública pero
+  // la política RLS de lectura solo cubre al rol anónimo, así que un prestador
+  // logueado obtendría 0 filas. Service role (solo server) trae la lista completa.
+  const catalogo = createAdminClient()
 
   const [{ data: prestador }, { data: fotos }, { data: oficiosData }, { data: zonasData }] = await Promise.all([
     supabase.from('prestadores').select('*').eq('id', user.id).single(),
     supabase.from('fotos_trabajos').select('id, url, created_at')
       .eq('prestador_id', user.id).order('created_at', { ascending: false }),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase as any).from('oficios').select('nombre').eq('activo', true)
+    (catalogo as any).from('oficios').select('nombre').eq('activo', true)
       .order('es_base', { ascending: false }).order('nombre'),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase as any).from('zonas').select('nombre').eq('activo', true)
+    (catalogo as any).from('zonas').select('nombre').eq('activo', true)
       .order('es_base', { ascending: false }).order('nombre'),
   ])
 

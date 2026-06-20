@@ -61,7 +61,7 @@ export default function EditarPrestadorAdminPage({ params }: { params: { id: str
   )
 
   return (
-    <div className="px-6 py-8 max-w-xl space-y-5">
+    <div className="px-4 sm:px-6 py-6 sm:py-8 max-w-xl space-y-5">
       <h1 className="text-2xl font-bold text-on-surface">Editar prestador</h1>
 
       <div className="rounded-xl border border-outline-variant bg-white p-5 shadow-card space-y-4">

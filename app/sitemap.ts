@@ -23,10 +23,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     { url: BASE,                        lastModified: new Date(), changeFrequency: 'daily',   priority: 1.0 },
     { url: `${BASE}/buscar`,            lastModified: new Date(), changeFrequency: 'daily',   priority: 0.9 },
-    { url: `${BASE}/contacto`,          lastModified: new Date(), changeFrequency: 'monthly', priority: 0.4 },
-    { url: `${BASE}/terminos`,          lastModified: new Date(), changeFrequency: 'yearly',  priority: 0.2 },
-    { url: `${BASE}/auth/registro/prestador`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE}/auth/registro/cliente`,   lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${BASE}/contacto`,          lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE}/terminos`,          lastModified: new Date(), changeFrequency: 'yearly',  priority: 0.8 },
+    { url: `${BASE}/auth/registro/prestador`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE}/auth/registro/cliente`,   lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
     ...perfiles,
   ]
 }

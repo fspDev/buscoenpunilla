@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { guardarPerfilClienteAction, guardarFotoClienteAction, cambiarRolAction } from '@/app/actions/cliente'
 import { FotoUploader } from '@/components/FotoUploader'
 import { SubmitButton } from '@/components/SubmitButton'
+import { EliminarCuentaBtn } from '@/components/EliminarCuentaBtn'
 
 const LOCALIDADES = [
   'San Antonio de Arredondo','Mayu Sumaj','Villa Parque Síquiman',
@@ -119,6 +120,9 @@ export default function PerfilClientePage() {
             Cambiar mi cuenta a Prestador
           </button>
         </div>
+
+        {/* Eliminar cuenta */}
+        <EliminarCuentaBtn />
       </div>
     </div>
   )

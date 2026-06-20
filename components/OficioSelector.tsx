@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 interface Props {
   oficiosDisponibles: string[]
@@ -18,23 +18,44 @@ export function OficioSelector({
   max = 5,
 }: Props) {
   const [selected, setSelected]           = useState<string[]>(defaultSelected)
+  const [query, setQuery]                 = useState('')
+  const [open, setOpen]                   = useState(false)
   const [propuestaModo, setPropuestaModo] = useState(!!defaultPropuesta)
   const [propuesta, setPropuesta]         = useState(defaultPropuesta)
   const [propuestaConfirmada, setPropuestaConfirmada] = useState(!!defaultPropuesta)
+  const boxRef = useRef<HTMLDivElement>(null)
+
+  // Cerrar el dropdown al hacer click afuera
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (boxRef.current && !boxRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
 
   function notify(nextSelected: string[], nextPropuesta: string) {
     onChange?.(nextSelected, nextPropuesta)
   }
 
-  function toggle(oficio: string) {
-    let next: string[]
-    if (selected.includes(oficio)) {
-      next = selected.filter((o) => o !== oficio)
-    } else if (selected.length < max) {
-      next = [...selected, oficio]
-    } else {
-      return
-    }
+  const lleno = selected.length >= max
+
+  // Opciones filtradas por búsqueda, excluyendo las ya elegidas
+  const filtradas = oficiosDisponibles.filter(
+    (o) => !selected.includes(o) && o.toLowerCase().includes(query.trim().toLowerCase())
+  )
+
+  function agregar(oficio: string) {
+    if (lleno || selected.includes(oficio)) return
+    const next = [...selected, oficio]
+    setSelected(next)
+    setQuery('')
+    setOpen(false)
+    notify(next, propuestaModo ? propuesta : '')
+  }
+
+  function quitar(oficio: string) {
+    const next = selected.filter((o) => o !== oficio)
     setSelected(next)
     notify(next, propuestaModo ? propuesta : '')
   }
@@ -44,7 +65,16 @@ export function OficioSelector({
     setPropuestaModo(activar)
     setPropuestaConfirmada(false)
     let next = selected
+    // Lo que el prestador escribió en el buscador se traslada al campo de
+    // propuesta, así no tiene que reescribirlo (y no queda vacío por error).
+    let nuevaPropuesta = propuesta
     if (activar) {
+      if (!propuesta.trim() && query.trim()) {
+        nuevaPropuesta = query.trim().slice(0, 60)
+        setPropuesta(nuevaPropuesta)
+      }
+      setQuery('')
+      setOpen(false)
       if (!selected.includes('Otro') && selected.length < max) {
         next = [...selected, 'Otro']
         setSelected(next)
@@ -53,8 +83,9 @@ export function OficioSelector({
       next = selected.filter((o) => o !== 'Otro')
       setSelected(next)
       setPropuesta('')
+      nuevaPropuesta = ''
     }
-    notify(next, activar ? propuesta : '')
+    notify(next, activar ? nuevaPropuesta : '')
   }
 
   function handlePropuesta(v: string) {
@@ -79,46 +110,93 @@ export function OficioSelector({
         {sinSeleccion && <span className="text-ds-error"> (requerido)</span>}
       </p>
 
-      <div className="flex flex-wrap gap-2">
-        {oficiosDisponibles.map((o) => {
-          const sel       = selected.includes(o)
-          const esPrimero = selected[0] === o
-          const lleno     = !sel && selected.length >= max
-          return (
-            <button
-              key={o}
-              type="button"
-              onClick={() => toggle(o)}
-              disabled={lleno}
-              className={`min-h-[44px] rounded-lg border px-3 py-2 text-sm font-medium transition
-                ${sel
-                  ? esPrimero
+      {/* Chips de oficios seleccionados */}
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {selected.map((o, i) => {
+            const esPrimero = i === 0
+            return (
+              <span
+                key={o}
+                className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium ${
+                  esPrimero
                     ? 'border-orange-400 bg-orange-50 text-orange-700'
                     : 'border-primary-container bg-surface-low text-primary-container'
-                  : lleno
-                    ? 'cursor-not-allowed border-outline-variant text-outline opacity-50'
-                    : 'border-outline-variant text-on-surface-variant hover:border-primary-container hover:text-on-surface'
                 }`}
-            >
-              {o}
-              {esPrimero && <span className="ml-1 text-xs opacity-70">(principal)</span>}
-            </button>
-          )
-        })}
+              >
+                {o}
+                {esPrimero && <span className="text-xs opacity-70">(principal)</span>}
+                <button
+                  type="button"
+                  onClick={() => quitar(o)}
+                  aria-label={`Quitar ${o}`}
+                  className="ml-0.5 text-base leading-none opacity-70 hover:opacity-100"
+                >
+                  ×
+                </button>
+              </span>
+            )
+          })}
+        </div>
+      )}
 
-        {/* Botón para activar modo propuesta */}
-        <button
-          type="button"
-          onClick={togglePropuestaModo}
-          className={`min-h-[44px] rounded-lg border px-3 py-2 text-sm font-medium transition
-            ${propuestaModo
-              ? 'border-secondary-container bg-secondary-container text-on-secondary-container'
-              : 'border-dashed border-outline-variant text-on-surface-variant hover:border-outline hover:text-on-surface'
-            }`}
-        >
-          {propuestaModo ? '✕ Cancelar propuesta' : '+ Mi oficio no está en la lista'}
-        </button>
+      {/* Buscador desplegable */}
+      <div ref={boxRef} className="relative">
+        <input
+          type="text"
+          value={query}
+          disabled={lleno}
+          onChange={(e) => { setQuery(e.target.value); setOpen(true) }}
+          onFocus={() => setOpen(true)}
+          placeholder={lleno ? `Máximo ${max} oficios` : 'Buscá y elegí tu oficio…'}
+          className="w-full rounded-lg border border-outline-variant px-3 py-2.5 text-sm outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container disabled:bg-surface-low disabled:text-outline disabled:cursor-not-allowed"
+        />
+
+        {open && !lleno && (
+          <ul className="absolute z-20 mt-1 max-h-56 w-full overflow-y-auto rounded-lg border border-outline-variant bg-white shadow-card-hover">
+            {filtradas.length > 0 ? (
+              filtradas.map((o) => (
+                <li key={o}>
+                  <button
+                    type="button"
+                    onClick={() => agregar(o)}
+                    className="block w-full px-3 py-2.5 text-left text-sm text-on-surface hover:bg-surface-low"
+                  >
+                    {o}
+                  </button>
+                </li>
+              ))
+            ) : query.trim() && !propuestaModo ? (
+              <li>
+                <button
+                  type="button"
+                  onClick={togglePropuestaModo}
+                  className="block w-full px-3 py-2.5 text-left text-sm text-primary-container hover:bg-surface-low"
+                >
+                  No está en la lista. <strong>Proponer &ldquo;{query.trim()}&rdquo;</strong> →
+                </button>
+              </li>
+            ) : (
+              <li className="px-3 py-2.5 text-sm text-outline italic">
+                Escribí para buscar tu oficio.
+              </li>
+            )}
+          </ul>
+        )}
       </div>
+
+      {/* Botón para activar modo propuesta */}
+      <button
+        type="button"
+        onClick={togglePropuestaModo}
+        className={`min-h-[40px] rounded-lg border px-3 py-2 text-sm font-medium transition
+          ${propuestaModo
+            ? 'border-secondary-container bg-secondary-container text-on-secondary-container'
+            : 'border-dashed border-outline-variant text-on-surface-variant hover:border-outline hover:text-on-surface'
+          }`}
+      >
+        {propuestaModo ? '✕ Cancelar propuesta' : '+ Mi oficio no está en la lista'}
+      </button>
 
       {/* Campo de propuesta */}
       {propuestaModo && (
@@ -186,7 +264,7 @@ export function OficioSelector({
         </div>
       )}
 
-      <p className="text-xs text-outline">El primer oficio que seleccionés será el principal.</p>
+      <p className="text-xs text-outline">El primer oficio que selecciones será el principal.</p>
 
       {/* Hidden inputs para el formulario */}
       <input type="hidden" name="oficios_json" value={JSON.stringify(selected)} />
