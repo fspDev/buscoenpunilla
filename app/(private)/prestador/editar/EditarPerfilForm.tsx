@@ -41,6 +41,11 @@ export function EditarPerfilForm({ prestador_id, oficiosDisponibles, zonasDispon
   const [activo, setActivo]   = useState(initialData.activo)
   const [toast, setToast]       = useState<{ text: string; ok: boolean } | null>(null)
   const [isPending, startTransition] = useTransition()
+  // Capturar estado de oficios propuestos desde OficioSelector
+  const [oficiosPropuesta, setOficiosPropuesta] = useState<{ selected: string[]; propuesta: string }>({
+    selected: initialData.oficios.length ? initialData.oficios : (initialData.oficio ? [initialData.oficio] : []),
+    propuesta: initialData.oficio_propuesto ?? '',
+  })
 
   useEffect(() => {
     if (state?.ok) showToast('Cambios guardados ✓')
@@ -212,7 +217,14 @@ export function EditarPerfilForm({ prestador_id, oficiosDisponibles, zonasDispon
             defaultSelected={initialData.oficios.length ? initialData.oficios : (initialData.oficio ? [initialData.oficio] : [])}
             defaultPropuesta={propuesta ?? ''}
             max={5}
+            onChange={(selected, propuesta) => setOficiosPropuesta({ selected, propuesta })}
+            suppressHiddenInputs={true}
           />
+          {/* Hidden inputs para garantizar que FormData tenga los valores correctos */}
+          <input type="hidden" name="oficios_json" value={JSON.stringify(oficiosPropuesta.selected)} />
+          {oficiosPropuesta.propuesta.trim() && (
+            <input type="hidden" name="oficio_propuesto" value={oficiosPropuesta.propuesta.trim()} />
+          )}
         </div>
 
         {/* Matrícula */}

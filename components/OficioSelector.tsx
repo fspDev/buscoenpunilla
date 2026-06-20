@@ -8,6 +8,7 @@ interface Props {
   defaultPropuesta?: string
   onChange?: (selected: string[], propuesta: string) => void
   max?: number
+  suppressHiddenInputs?: boolean
 }
 
 export function OficioSelector({
@@ -16,6 +17,7 @@ export function OficioSelector({
   defaultPropuesta = '',
   onChange,
   max = 5,
+  suppressHiddenInputs = false,
 }: Props) {
   const [selected, setSelected]           = useState<string[]>(defaultSelected)
   const [query, setQuery]                 = useState('')
@@ -266,10 +268,14 @@ export function OficioSelector({
 
       <p className="text-xs text-outline">El primer oficio que selecciones será el principal.</p>
 
-      {/* Hidden inputs para el formulario */}
-      <input type="hidden" name="oficios_json" value={JSON.stringify(selected)} />
-      {propuestaModo && propuesta.trim() && (
-        <input type="hidden" name="oficio_propuesto" value={propuesta.trim()} />
+      {/* Hidden inputs para el formulario (solo si no es suprimido por el parent) */}
+      {!suppressHiddenInputs && (
+        <>
+          <input type="hidden" name="oficios_json" value={JSON.stringify(selected)} />
+          {propuestaModo && propuesta.trim() && (
+            <input type="hidden" name="oficio_propuesto" value={propuesta.trim()} />
+          )}
+        </>
       )}
     </div>
   )

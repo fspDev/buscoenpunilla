@@ -51,13 +51,13 @@ export async function guardarPerfilAction(
     matricula,
   }
 
+  // Si el prestador propone un nuevo oficio, marcarlo como pendiente.
+  // Si NO viene oficio_propuesto, no tocamos los campos anteriores (podría estar editando otros datos).
+  // Si elige un oficio de la lista (no propone), los oficios seleccionados no tienen 'Otro', así que automaticamente
+  // se va a aprobado cuando se seleccione algo de verdad.
   if (oficio_propuesto) {
     prestadorUpdate.oficio_propuesto = oficio_propuesto
     prestadorUpdate.estado_oficio    = 'pendiente'
-  } else {
-    // Si cambió a oficio de lista, limpiar propuesta anterior y marcar aprobado
-    prestadorUpdate.oficio_propuesto = null
-    prestadorUpdate.estado_oficio    = 'aprobado'
   }
 
   if (zona_propuesta) {
